@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StudySync Pro — NEET & JEE</title>
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="StudySync">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="description" content="StudySync Pro: JEE and NEET study tracker with focus timer, stopwatch, and live study room.">
+  <style>
+    :root {
+      --primary: #6366f1; --primary-hover: #4f46e5; --primary-glow: rgba(99, 102, 241, 0.25);
+      --bg: #f8fafc; --bg-grad: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%);
+      --card-bg: rgba(255, 255, 255, 0.94); --card-alt: #f1f5f9;
+      --text: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+      --physics: #3b82f6; --chem: #10b981; --botany: #22c55e; --zoology: #a855f7; --math: #f59e0b;
+      --success: #16a34a; --warning: #eab308; --danger: #ef4444;
+      --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+    }
+    [data-theme="dark"] {
+      --primary: #818cf8; --primary-hover: #6366f1; --primary-glow: rgba(129, 140, 248, 0.25);
+      --bg: #090d16; --bg-grad: radial-gradient(circle at top right, #1e1b4b, #090d16 60%);
+      --card-bg: rgba(17, 24, 39, 0.9); --card-alt: #1e293b;
+      --text: #f8fafc; --text-muted: #94a3b8; --border: #1f2937;
+      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg-grad); background-color: var(--bg); color: var(--text); min-height: 100vh; padding: 16px 14px 60px; transition: background 0.3s, color 0.3s; }
+    .app-wrapper { max-width: 1140px; margin: 0 auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; padding: 14px 18px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #ec4899); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; }
+    .brand h1 { font-size: 1.15rem; font-weight: 800; }
+    .brand p { font-size: 0.78rem; color: var(--text-muted); }
+    .top-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mode-switch { display: inline-flex; background: var(--card-alt); padding: 4px; border-radius: 999px; border: 1px solid var(--border); }
+    .mode-btn { border: none; background: transparent; padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+    .mode-btn.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px var(--primary-glow); }
+    .icon-btn { background: var(--card-alt); border: 1px solid var(--border); color: var(--text); padding: 7px 11px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .install-btn { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; }
+    .dashboard-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px; align-items: start; }
+    @media (max-width: 920px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-title { font-size: 0.98rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .progress-hero { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+    .big-percent { font-size: 1.9rem; font-weight: 800; color: var(--primary); line-height: 1; }
+    .progress-track { width: 100%; height: 11px; background: var(--card-alt); border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #10b981); border-radius: 999px; transition: width 0.4s ease; }
+    .subject-mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .subj-stat { background: var(--card-alt); padding: 8px 10px; border-radius: 10px; font-size: 0.75rem; }
+    .subj-stat-top { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 4px; }
+    .subj-mini-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .subj-mini-fill { height: 100%; width: 0%; transition: width 0.4s ease; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    select, input { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.88rem; background: var(--card-alt); color: var(--text); outline: none; width: 100%; }
+    select:focus, input:focus { border-color: var(--primary); }
+    .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #fff; border: none; border-radius: 10px; font-size: 0.92rem; font-weight: 700; cursor: pointer; }
+    .filter-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .task-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .task-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; background: var(--card-alt); border: 1px solid var(--border); border-radius: 12px; }
+    .task-item.completed { opacity: 0.6; }
+    .task-item.completed .task-title { text-decoration: line-through; color: var(--text-muted); }
+    .task-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; }
+    .task-checkbox { width: 19px; height: 19px; margin-top: 2px; cursor: pointer; accent-color: var(--success); }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+    .badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; color: #fff; }
+    .badge-physics { background: var(--physics); }
+    .badge-chemistry { background: var(--chem); }
+    .badge-botany { background: var(--botany); }
+    .badge-zoology { background: var(--zoology); }
+    .badge-mathematics { background: var(--math); }
+    .badge-cat { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+    .prio-high { background: rgba(239,68,68,0.2); color: #f87171; }
+    .prio-medium { background: rgba(234,179,8,0.2); color: #facc15; }
+    .prio-low { background: rgba(16,185,129,0.2); color: #34d399; }
+    .task-title { font-size: 0.9rem; font-weight: 600; }
+    .task-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .task-actions { display: flex; gap: 4px; }
+    .action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; font-size: 0.95rem; }
+    .timer-tabs { display: flex; gap: 6px; background: var(--card-alt); padding: 4px; border-radius: 10px; margin-bottom: 12px; }
+    .timer-tab { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; }
+    .timer-tab.active { background: var(--primary); color: #fff; }
+    .timer-display-box { text-align: center; padding: 18px 12px; background: var(--card-alt); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 12px; }
+    .timer-running-glow { box-shadow: 0 0 20px var(--primary-glow); border-color: var(--primary); }
+    .timer-digits { font-size: 3rem; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0; }
+    .timer-preset-row { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .timer-controls { display: flex; gap: 8px; }
+    .timer-btn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+    .timer-btn.start { background: var(--success); color: #fff; }
+    .timer-btn.pause { background: var(--warning); color: #000; }
+    .timer-btn.reset { background: var(--card-alt); color: var(--text); border: 1px solid var(--border); }
+    .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); display: inline-block; box-shadow: 0 0 8px var(--success); }
+    .friend-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .friend-card { display: flex; justify-content: space-between; align-items: center; padding: 11px 13px; background: var(--card-alt); border: 1px solid var(--border); border-radius: 12px; }
+    .friend-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #ec4899); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; }
+    .status-pill { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+    .status-studying { background: rgba(22,163,74,0.2); color: #4ade80; }
+    .status-break { background: rgba(234,179,8,0.2); color: #facc15; }
+    .status-idle { background: rgba(148,163,184,0.15); color: var(--text-muted); }
+    .empty-box { text-align: center; padding: 20px 10px; color: var(--text-muted); font-size: 0.84rem; border: 1px dashed var(--border); border-radius: 12px; }
+    .test-log-item { padding: 9px 11px; background: var(--card-alt); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" style="overflow:hidden;padding:0;background:#0b1d3a;"><img src="./icon-192.png" alt="StudySync logo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
+      <div>
+        <h1>StudySync Pro</h1>
+        <p id="currentDateDisplay">Loading study day...</p>
+      </div>
+    </div>
+    <div class="top-controls">
+      <div class="mode-switch">
+        <button type="button" id="neetModeBtn" class="mode-btn active">🩺 NEET</button>
+        <button type="button" id="jeeModeBtn" class="mode-btn">🎯 JEE</button>
+      </div>
+      <button type="button" id="installAppBtn" class="icon-btn install-btn">📲 Install App</button>
+      <button type="button" id="resetHourBtn" class="icon-btn">🕒 <span id="resetHourLabel">3:00 AM</span></button>
+      <button type="button" id="themeToggleBtn" class="icon-btn">🌙</button>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <div>
+      <!-- Daily Progress -->
+      <section class="card">
+        <div class="progress-hero">
+          <div>
+            <span class="card-title">📊 Daily Target Completion</span>
+            <p id="progressCounts" style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">0 of 0 tasks completed</p>
+          </div>
+          <div id="progressPercent" class="big-percent">0%</div>
+        </div>
+        <div class="progress-track"><div id="progressBarFill" class="progress-fill"></div></div>
+        <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted);">
+          <span id="progressMotivation">Set your targets and start locking in!</span>
+          <span>Studied Today: <strong id="todayTotalTimeLabel" style="color:var(--primary);">0h 0m</strong></span>
+        </div>
+        <div id="subjectMiniGrid" class="subject-mini-grid"></div>
+      </section>
+
+      <!-- Add Study Target -->
+      <section class="card">
+        <div class="card-header"><span class="card-title">➕ Add Study Target</span></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="subjectSelect">Subject</label>
+            <select id="subjectSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="chapterSelect">Chapter</label>
+            <select id="chapterSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="categorySelect">Work Category</label>
+            <select id="categorySelect">
+              <option value="NCERT Reading">📖 NCERT Line-by-Line Reading</option>
+              <option value="Lecture">🎥 Doing a Lecture</option>
+              <option value="DPP / Practice">📝 Solving DPP / Daily Practice</option>
+              <option value="Module">📚 Solving Questions: Module</option>
+              <option value="PYQs">🔥 Solving Questions: PYQs (37 Yrs)</option>
+              <option value="Reference Book">📘 Solving Reference Book (N. Avasthi / HCV)</option>
+              <option value="Mock Test">⏱️ Giving a Mock Test / Part Test</option>
+              <option value="Test Analysis">🔍 Test Analysis & Mistake Notebook</option>
+              <option value="Short Notes (Make)">✍️ Short Notes: Make Notes</option>
+              <option value="Short Notes (Revise)">🧠 Short Notes / Formula Revision</option>
+              <option value="Backlog">⏳ Backlog Coverage</option>
+              <option value="Diagrams / Lab">🧬 NCERT Diagrams & Reactions</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="prioritySelect">Priority Level</label>
+            <select id="prioritySelect">
+              <option value="High">🔴 High Priority (Must Do)</option>
+              <option value="Medium" selected>🟡 Medium Priority</option>
+              <option value="Low">🟢 Low Priority</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="detailsInput">Specific Target / Question Range / Notes</label>
+          <input type="text" id="detailsInput" placeholder="e.g., Q1–60 N. Avasthi, Page 42–55 NCERT, or Analyse wrong Physics Qs">
+        </div>
+        <button type="button" id="addBtn" class="btn-primary">+ Add Task to Today's Plan</button>
+      </section>
+
+      <!-- Active Tasks -->
+      <section class="card">
+        <div class="filter-bar">
+          <span id="listSummaryText" class="card-title">📋 Today's Tasks (0)</span>
+          <div style="display:flex; gap:6px;">
+            <button type="button" id="toggleHistoryBtn" class="chip-btn">📅 Past Days</button>
+            <button type="button" id="manualResetBtn" class="chip-btn" style="color:var(--danger);">🗑️ Archive Done</button>
+          </div>
+        </div>
+        <ul id="taskList" class="task-list"></ul>
+        <div id="emptyState" class="empty-box">No tasks added yet. Pick a chapter above and lock in!</div>
+        <div id="historyBox" style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+          <h4 style="font-size:0.85rem; margin-bottom:6px;">Past 30 Days Study Log</h4>
+          <ul id="historyList" style="list-style:none; font-size:0.8rem; color:var(--text-muted);"></ul>
+        </div>
+      </section>
+
+      <!-- Mock Test Tracker -->
+      <section class="card">
+        <div class="card-header"><span class="card-title">📈 Mock Test & Analysis Log</span></div>
+        <div class="form-grid">
+          <input type="text" id="testNameInput" placeholder="Test Name (e.g. Major Test #4 / PW)">
+          <input type="text" id="testScoreInput" placeholder="Score (e.g. 645/720 or 210/300)">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <input type="text" id="testMistakesInput" placeholder="Key Test Analysis Takeaway (e.g. Revise Electrochemistry formulas)">
+        </div>
+        <button type="button" id="addTestBtn" class="chip-btn" style="width:100%; padding:9px; font-weight:700;">+ Save Test & Analysis Record</button>
+        <div id="testLogList" style="margin-top:10px;"></div>
+      </section>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+      <!-- Focus Timer & Stopwatch -->
+      <section class="card">
+        <div class="card-header">
+          <span class="card-title">⏱️ Focus Timer & Stopwatch</span>
+          <span id="activeTimerStatusBadge" class="status-pill status-idle">⚪ Idle</span>
+        </div>
+        <div class="timer-tabs">
+          <button type="button" id="tabCountdown" class="timer-tab active">⏳ Countdown Timer</button>
+          <button type="button" id="tabStopwatch" class="timer-tab">⏱️ Stopwatch</button>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label for="studyingNowInput">What are you studying right now? (Visible to Friends)</label>
+          <input type="text" id="studyingNowInput" placeholder="e.g. Solving Physical Chem PYQs 🔥">
+        </div>
+        <div id="timerBox" class="timer-display-box">
+          <div style="font-size:0.74rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;" id="timerModeSubtext">Pomodoro / Custom Timer</div>
+          <div id="timerDigits" class="timer-digits">25:00</div>
+        </div>
+        <div id="countdownPresets" class="timer-preset-row">
+          <button type="button" class="chip-btn" data-mins="25">25m Pomodoro</button>
+          <button type="button" class="chip-btn" data-mins="50">50m Deep Study</button>
+          <button type="button" class="chip-btn" data-mins="90">90m Lecture</button>
+          <button type="button" class="chip-btn" data-mins="180">3h Mock</button>
+          <button type="button" id="customMinBtn" class="chip-btn">⚙️ Custom</button>
+        </div>
+        <div class="timer-controls">
+          <button type="button" id="timerStartBtn" class="timer-btn start">▶ Start</button>
+          <button type="button" id="timerPauseBtn" class="timer-btn pause">⏸ Break</button>
+          <button type="button" id="timerResetBtn" class="timer-btn reset">↺ Reset</button>
+        </div>
+      </section>
+
+      <!-- Live Friends Study Room -->
+      <section class="card">
+        <div class="card-header">
+          <span class="card-title"><span class="live-dot"></span> Live Study Squad Room</span>
+          <span id="mqttConnStatus" style="font-size:0.74rem; color:var(--text-muted);">Offline / Local</span>
+        </div>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
+          Enter the same <strong>Room Code</strong> with your friends to see who is studying live, their timer, and total hours today!
+        </p>
+        <div class="form-grid" style="margin-bottom:10px;">
+          <div class="form-group">
+            <label for="myNameInput">Your Display Name</label>
+            <input type="text" id="myNameInput" placeholder="Your Name">
+          </div>
+          <div class="form-group">
+            <label for="roomCodeInput">Shared Room Code</label>
+            <input type="text" id="roomCodeInput" placeholder="e.g. NEET-SQUAD-01">
+          </div>
+        </div>
+        <button type="button" id="joinRoomBtn" class="btn-primary" style="padding:9px; font-size:0.84rem;">🔗 Sync / Join Study Room</button>
+        <div id="friendsContainer" class="friend-list"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- Optional External Libraries (Loaded at Bottom so Core App Never Blocks) -->
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. SYLLABUS DATA
+  const syllabus = {
+    Physics: [
+      "Units & Measurements", "Motion in a Straight Line", "Motion in a Plane (Vectors & Projectile)",
+      "Laws of Motion & Friction", "Work, Energy & Power", "System of Particles & Rotational Motion",
+      "Gravitation", "Mechanical Properties of Solids", "Mechanical Properties of Fluids",
+      "Thermal Properties & Thermodynamics", "Kinetic Theory of Gases", "Oscillations (SHM)",
+      "Waves & Acoustics", "Electrostatics & Capacitance", "Current Electricity",
+      "Moving Charges & Magnetism", "Magnetism & Matter", "Electromagnetic Induction",
+      "Alternating Current", "Electromagnetic Waves", "Ray Optics & Optical Instruments",
+      "Wave Optics", "Dual Nature of Radiation & Matter", "Atoms & Nuclei", "Semiconductor & Logic Gates"
+    ],
+    Chemistry: [
+      "Some Basic Concepts (Mole Concept)", "Structure of Atom", "Periodic Table & Periodicity",
+      "Chemical Bonding & Molecular Structure", "Thermodynamics & Thermochemistry",
+      "Equilibrium (Chemical & Ionic)", "Redox Reactions", "Solutions", "Electrochemistry",
+      "Chemical Kinetics", "d & f Block Elements", "Coordination Compounds",
+      "Purification & General Organic Chemistry (GOC)", "Hydrocarbons", "Haloalkanes & Haloarenes",
+      "Alcohols, Phenols & Ethers", "Aldehydes, Ketones & Carboxylic Acids", "Amines & Diazonium Salts",
+      "Biomolecules", "p-Block Elements", "Practical Chemistry & Salt Analysis"
+    ],
+    Botany: [
+      "The Living World", "Biological Classification", "Plant Kingdom",
+      "Morphology of Flowering Plants", "Anatomy of Flowering Plants",
+      "Cell: The Unit of Life", "Cell Cycle & Cell Division", "Photosynthesis in Higher Plants",
+      "Respiration in Plants", "Plant Growth & Development", "Sexual Reproduction in Flowering Plants",
+      "Principles of Inheritance & Variation", "Molecular Basis of Inheritance",
+      "Microbes in Human Welfare", "Organisms & Populations", "Ecosystem", "Biodiversity & Conservation"
+    ],
+    Zoology: [
+      "Animal Kingdom", "Structural Organisation in Animals", "Biomolecules (Bio)",
+      "Breathing & Exchange of Gases", "Body Fluids & Circulation", "Excretory Products & Elimination",
+      "Locomotion & Movement", "Neural Control & Coordination", "Chemical Coordination & Integration",
+      "Human Reproduction", "Reproductive Health", "Evolution", "Human Health & Disease",
+      "Biotechnology: Principles & Processes", "Biotechnology & its Applications"
+    ],
+    Mathematics: [
+      "Sets, Relations & Functions", "Trigonometric Functions", "Complex Numbers & Quadratic Equations",
+      "Permutations & Combinations", "Binomial Theorem", "Sequences & Series (AP, GP)",
+      "Straight Lines & Circles", "Conic Sections", "Limits, Continuity & Differentiability",
+      "Application of Derivatives (AOD)", "Indefinite & Definite Integrals", "Differential Equations",
+      "Vector Algebra", "Three-Dimensional Geometry (3D)", "Probability", "Matrices & Determinants"
+    ]
+  };
+
+  const modeSubjects = {
+    neet: ["Physics", "Chemistry", "Botany", "Zoology"],
+    jee: ["Physics", "Chemistry", "Mathematics"]
+  };
+
+  // 2. STATE
+  let currentMode = localStorage.getItem('study_exam_mode_v6') || 'neet';
+  let resetHour = parseInt(localStorage.getItem('study_reset_hour_v6') || '3', 10);
+  let tasks = JSON.parse(localStorage.getItem('study_tasks_v6') || '[]');
+  let history = JSON.parse(localStorage.getItem('study_history_v6') || '[]');
+  let testLogs = JSON.parse(localStorage.getItem('study_tests_v6') || '[]');
+  let todayStudiedSeconds = parseInt(localStorage.getItem('study_seconds_today_v6') || '0', 10);
+  let celebratedToday = false;
+
+  // DOM Elements
+  const neetModeBtn = document.getElementById('neetModeBtn');
+  const jeeModeBtn = document.getElementById('jeeModeBtn');
+  const subjectSelect = document.getElementById('subjectSelect');
+  const chapterSelect = document.getElementById('chapterSelect');
+  const categorySelect = document.getElementById('categorySelect');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const detailsInput = document.getElementById('detailsInput');
+  const addBtn = document.getElementById('addBtn');
+  const taskList = document.getElementById('taskList');
+  const emptyState = document.getElementById('emptyState');
+  const progressPercent = document.getElementById('progressPercent');
+  const progressBarFill = document.getElementById('progressBarFill');
+  const progressCounts = document.getElementById('progressCounts');
+  const progressMotivation = document.getElementById('progressMotivation');
+  const subjectMiniGrid = document.getElementById('subjectMiniGrid');
+  const listSummaryText = document.getElementById('listSummaryText');
+  const todayTotalTimeLabel = document.getElementById('todayTotalTimeLabel');
+  const currentDateDisplay = document.getElementById('currentDateDisplay');
+  const resetHourBtn = document.getElementById('resetHourBtn');
+  const resetHourLabel = document.getElementById('resetHourLabel');
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+  function formatDuration(totalSecs) {
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    return `${hrs}h ${mins}m`;
+  }
+
+  function getStudyDayDate(dateObj = new Date()) {
+    const shifted = new Date(dateObj.getTime() - (resetHour * 60 * 60 * 1000));
+    const year = shifted.getFullYear();
+    const month = String(shifted.getMonth() + 1).padStart(2, '0');
+    const day = String(shifted.getDate()).padStart(2, '0');
+    return {
+      dateString: `${year}-${month}-${day}`,
+      displayString: shifted.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  function checkDailyRollover() {
+    const studyDay = getStudyDayDate();
+    const lastDate = localStorage.getItem('study_last_date_v6');
+    if (lastDate && lastDate !== studyDay.dateString) {
+      if (tasks.length > 0) {
+        const done = tasks.filter(t => t.completed).length;
+        history.unshift({
+          date: lastDate,
+          completed: done,
+          total: tasks.length,
+          percentage: Math.round((done / tasks.length) * 100),
+          studiedHours: (todayStudiedSeconds / 3600).toFixed(1)
+        });
+        localStorage.setItem('study_history_v6', JSON.stringify(history.slice(0, 30)));
+      }
+      tasks = tasks.filter(t => !t.completed);
+      todayStudiedSeconds = 0;
+      localStorage.setItem('study_tasks_v6', JSON.stringify(tasks));
+      localStorage.setItem('study_seconds_today_v6', '0');
+    }
+    localStorage.setItem('study_last_date_v6', studyDay.dateString);
+    currentDateDisplay.textContent = `Study Day: ${studyDay.displayString}`;
+    resetHourLabel.textContent = `${resetHour}:00 AM`;
+  }
+
+  // Theme & Reset Hour
+  const savedTheme = localStorage.getItem('study_theme_v6') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  themeToggleBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('study_theme_v6', next);
+  });
+
+  resetHourBtn.addEventListener('click', () => {
+    const input = prompt("Enter daily reset hour (0 to 12 AM):", resetHour);
+    if (input !== null && !isNaN(input) && input >= 0 && input <= 12) {
+      resetHour = parseInt(input, 10);
+      localStorage.setItem('study_reset_hour_v6', resetHour);
+      checkDailyRollover();
+    }
+  });
+
+  // 3. DROPDOWNS & EXAM MODE SWITCH
+  function updateChapters() {
+    const selectedSubject = subjectSelect.value;
+    const chapters = syllabus[selectedSubject] || [];
+    chapterSelect.innerHTML = chapters.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  function setMode(mode) {
+    currentMode = (mode === 'jee') ? 'jee' : 'neet';
+    localStorage.setItem('study_exam_mode_v6', currentMode);
+    neetModeBtn.classList.toggle('active', currentMode === 'neet');
+    jeeModeBtn.classList.toggle('active', currentMode === 'jee');
+
+    const subjects = modeSubjects[currentMode];
+    const prevSubj = subjectSelect.value;
+    subjectSelect.innerHTML = subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+    subjectSelect.value = subjects.includes(prevSubj) ? prevSubj : subjects[0];
+    updateChapters();
+    renderTasksAndProgress();
+  }
+
+  subjectSelect.addEventListener('change', updateChapters);
+  neetModeBtn.addEventListener('click', () => setMode('neet'));
+  jeeModeBtn.addEventListener('click', () => setMode('jee'));
+
+  // 4. TASKS & PROGRESS
+  function saveAndRender() {
+    localStorage.setItem('study_tasks_v6', JSON.stringify(tasks));
+    renderTasksAndProgress();
+    broadcastPresence();
+  }
+
+  function renderTasksAndProgress() {
+    taskList.innerHTML = '';
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.completed).length;
+    todayTotalTimeLabel.textContent = formatDuration(todayStudiedSeconds);
+
+    const activeSubjects = modeSubjects[currentMode];
+    const subjColors = { Physics: 'var(--physics)', Chemistry: 'var(--chem)', Botany: 'var(--botany)', Zoology: 'var(--zoology)', Mathematics: 'var(--math)' };
+    subjectMiniGrid.innerHTML = activeSubjects.map(subj => {
+      const sTasks = tasks.filter(t => t.subject === subj);
+      const sDone = sTasks.filter(t => t.completed).length;
+      const pct = sTasks.length ? Math.round((sDone / sTasks.length) * 100) : 0;
+      return `
+        <div class="subj-stat">
+          <div class="subj-stat-top"><span>${subj}</span><span>${sDone}/${sTasks.length}</span></div>
+          <div class="subj-mini-bar"><div class="subj-mini-fill" style="width:${pct}%; background:${subjColors[subj]};"></div></div>
+        </div>
+      `;
+    }).join('');
+
+    if (total === 0) {
+      emptyState.style.display = 'block';
+      progressBarFill.style.width = '0%';
+      progressPercent.textContent = '0%';
+      progressCounts.textContent = '0 of 0 tasks completed';
+      listSummaryText.textContent = "📋 Today's Tasks (0)";
+      return;
+    }
+
+    emptyState.style.display = 'none';
+
+    tasks.forEach((task, index) => {
+      const li = document.createElement('li');
+      li.className = `task-item ${task.completed ? 'completed' : ''}`;
+      const badgeClass = `badge-${task.subject.toLowerCase()}`;
+      const prioClass = `prio-${(task.priority || 'Medium').toLowerCase()}`;
+
+      li.innerHTML = `
+        <div class="task-left">
+          <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} data-index="${index}">
+          <div>
+            <div class="badge-row">
+              <span class="badge ${badgeClass}">${task.subject}</span>
+              <span class="badge badge-cat">${task.category}</span>
+              <span class="badge ${prioClass}">${task.priority || 'Medium'}</span>
+            </div>
+            <div class="task-title">${task.chapter}</div>
+            ${task.details ? `<div class="task-note">${task.details}</div>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button type="button" class="action-btn edit" data-index="${index}">✏️</button>
+          <button type="button" class="action-btn delete" data-index="${index}">✕</button>
+        </div>
+      `;
+      taskList.appendChild(li);
+    });
+
+    const pct = Math.round((completed / total) * 100);
+    progressBarFill.style.width = `${pct}%`;
+    progressPercent.textContent = `${pct}%`;
+    progressCounts.textContent = `${completed} of ${total} tasks completed`;
+    listSummaryText.textContent = `📋 Today's Tasks (${completed}/${total})`;
+
+    if (pct === 100 && total > 0) {
+      progressMotivation.textContent = '🏆 100% Completed! Unstoppable Ranker Energy!';
+      if (!celebratedToday && typeof window.confetti === 'function') {
+        window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        celebratedToday = true;
+      }
+    } else {
+      progressMotivation.textContent = pct >= 50 ? '🔥 Past halfway! Keep pushing!' : '🚀 One chapter at a time. Lock in!';
+      celebratedToday = false;
+    }
+
+    taskList.querySelectorAll('.task-checkbox').forEach(cb => {
+      cb.addEventListener('change', e => {
+        tasks[e.target.dataset.index].completed = e.target.checked;
+        saveAndRender();
+      });
+    });
+
+    taskList.querySelectorAll('.action-btn.delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        tasks.splice(e.currentTarget.dataset.index, 1);
+        saveAndRender();
+      });
+    });
+
+    taskList.querySelectorAll('.action-btn.edit').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = e.currentTarget.dataset.index;
+        const updated = prompt("Update target details:", tasks[idx].details || tasks[idx].chapter);
+        if (updated !== null) {
+          tasks[idx].details = updated.trim();
+          saveAndRender();
+        }
+      });
+    });
+  }
+
+  addBtn.addEventListener('click', () => {
+    if (!subjectSelect.value || !chapterSelect.value) return;
+    tasks.push({
+      subject: subjectSelect.value,
+      chapter: chapterSelect.value,
+      category: categorySelect.value,
+      priority: prioritySelect.value,
+      details: detailsInput.value.trim(),
+      completed: false
+    });
+    detailsInput.value = '';
+    saveAndRender();
+  });
+
+  document.getElementById('manualResetBtn').addEventListener('click', () => {
+    if (!tasks.length) return;
+    if (confirm("Archive completed tasks and keep only pending tasks?")) {
+      tasks = tasks.filter(t => !t.completed);
+      saveAndRender();
+    }
+  });
+
+  document.getElementById('toggleHistoryBtn').addEventListener('click', () => {
+    const box = document.getElementById('historyBox');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    const list = document.getElementById('historyList');
+    list.innerHTML = history.length ? history.map(h => `
+      <li style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border);">
+        <span><strong>${h.date}</strong> (${h.studiedHours || 0}h)</span>
+        <span>${h.completed}/${h.total} (${h.percentage}%)</span>
+      </li>
+    `).join('') : '<li>No past study days archived yet.</li>';
+  });
+
+  // 5. MOCK TEST TRACKER
+  function renderTests() {
+    const container = document.getElementById('testLogList');
+    container.innerHTML = testLogs.length ? testLogs.slice(0, 6).map(t => `
+      <div class="test-log-item">
+        <div style="display:flex; justify-content:space-between; font-weight:700;">
+          <span>📝 ${t.name}</span><span style="color:var(--primary);">${t.score}</span>
+        </div>
+        <div style="color:var(--text-muted); margin-top:3px;">🔍 Analysis: ${t.mistakes || 'None noted'}</div>
+      </div>
+    `).join('') : '<div style="font-size:0.78rem; color:var(--text-muted);">No mock tests logged yet.</div>';
+  }
+
+  document.getElementById('addTestBtn').addEventListener('click', () => {
+    const name = document.getElementById('testNameInput').value.trim();
+    const score = document.getElementById('testScoreInput').value.trim();
+    const mistakes = document.getElementById('testMistakesInput').value.trim();
+    if (!name || !score) return alert("Please enter both Test Name and Score.");
+    testLogs.unshift({ name, score, mistakes });
+    localStorage.setItem('study_tests_v6', JSON.stringify(testLogs));
+    document.getElementById('testNameInput').value = '';
+    document.getElementById('testScoreInput').value = '';
+    document.getElementById('testMistakesInput').value = '';
+    renderTests();
+  });
+
+  // 6. TIMER & STOPWATCH
+  let timerMode = 'countdown';
+  let timerRunning = false;
+  let timerState = 'Idle';
+  let countdownTargetSeconds = 25 * 60;
+  let currentTimerSeconds = 25 * 60;
+  let timerInterval = null;
+
+  const timerDigits = document.getElementById('timerDigits');
+  const timerBox = document.getElementById('timerBox');
+  const activeTimerStatusBadge = document.getElementById('activeTimerStatusBadge');
+  const studyingNowInput = document.getElementById('studyingNowInput');
+  const tabCountdown = document.getElementById('tabCountdown');
+  const tabStopwatch = document.getElementById('tabStopwatch');
+  const countdownPresets = document.getElementById('countdownPresets');
+  const timerModeSubtext = document.getElementById('timerModeSubtext');
+
+  studyingNowInput.value = localStorage.getItem('study_current_topic_v6') || 'Solving NCERT & PYQs';
+  studyingNowInput.addEventListener('input', () => {
+    localStorage.setItem('study_current_topic_v6', studyingNowInput.value);
+    broadcastPresence();
+  });
+
+  function formatTimerMMSS(secs) {
+    const hrs = Math.floor(secs / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
+    const rem = secs % 60;
+    if (hrs > 0) return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+    return `${String(mins).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+  }
+
+  function updateTimerUI() {
+    timerDigits.textContent = formatTimerMMSS(currentTimerSeconds);
+    timerBox.classList.toggle('timer-running-glow', timerRunning);
+    if (timerState === 'Studying') {
+      activeTimerStatusBadge.textContent = '🟢 Studying Live';
+      activeTimerStatusBadge.className = 'status-pill status-studying';
+    } else if (timerState === 'On Break') {
+      activeTimerStatusBadge.textContent = '☕ On Break';
+      activeTimerStatusBadge.className = 'status-pill status-break';
+    } else {
+      activeTimerStatusBadge.textContent = '⚪ Idle';
+      activeTimerStatusBadge.className = 'status-pill status-idle';
+    }
+  }
+
+  function pauseTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    timerRunning = false;
+  }
+
+  tabCountdown.addEventListener('click', () => {
+    pauseTimer();
+    timerState = 'Idle';
+    timerMode = 'countdown';
+    tabCountdown.classList.add('active');
+    tabStopwatch.classList.remove('active');
+    countdownPresets.style.display = 'flex';
+    timerModeSubtext.textContent = 'Pomodoro / Custom Countdown';
+    currentTimerSeconds = countdownTargetSeconds;
+    updateTimerUI();
+  });
+
+  tabStopwatch.addEventListener('click', () => {
+    pauseTimer();
+    timerState = 'Idle';
+    timerMode = 'stopwatch';
+    tabStopwatch.classList.add('active');
+    tabCountdown.classList.remove('active');
+    countdownPresets.style.display = 'none';
+    timerModeSubtext.textContent = 'Count-Up Focus Stopwatch';
+    currentTimerSeconds = 0;
+    updateTimerUI();
+  });
+
+  countdownPresets.querySelectorAll('.chip-btn[data-mins]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      pauseTimer();
+      timerState = 'Idle';
+      countdownTargetSeconds = parseInt(btn.dataset.mins, 10) * 60;
+      currentTimerSeconds = countdownTargetSeconds;
+      updateTimerUI();
+    });
+  });
+
+  document.getElementById('customMinBtn').addEventListener('click', () => {
+    const mins = prompt("Enter custom countdown minutes (1 to 300):", "45");
+    if (mins && !isNaN(mins) && mins > 0) {
+      pauseTimer();
+      timerState = 'Idle';
+      countdownTargetSeconds = parseInt(mins, 10) * 60;
+      currentTimerSeconds = countdownTargetSeconds;
+      updateTimerUI();
+    }
+  });
+
+  document.getElementById('timerStartBtn').addEventListener('click', () => {
+    if (timerRunning) return;
+    timerRunning = true;
+    timerState = 'Studying';
+    updateTimerUI();
+    broadcastPresence();
+
+    timerInterval = setInterval(() => {
+      todayStudiedSeconds++;
+      localStorage.setItem('study_seconds_today_v6', todayStudiedSeconds);
+      todayTotalTimeLabel.textContent = formatDuration(todayStudiedSeconds);
+
+      if (timerMode === 'countdown') {
+        if (currentTimerSeconds > 0) {
+          currentTimerSeconds--;
+        } else {
+          pauseTimer();
+          timerState = 'On Break';
+          alert("🎉 Focus Session Complete! Take a break.");
+        }
+      } else {
+        currentTimerSeconds++;
+      }
+      updateTimerUI();
+    }, 1000);
+  });
+
+  document.getElementById('timerPauseBtn').addEventListener('click', () => {
+    pauseTimer();
+    timerState = 'On Break';
+    updateTimerUI();
+    broadcastPresence();
+  });
+
+  document.getElementById('timerResetBtn').addEventListener('click', () => {
+    pauseTimer();
+    timerState = 'Idle';
+    currentTimerSeconds = timerMode === 'countdown' ? countdownTargetSeconds : 0;
+    updateTimerUI();
+    broadcastPresence();
+  });
+
+  // 7. LIVE FRIENDS ROOM
+  const clientId = 'u_' + Math.random().toString(36).substring(2, 8);
+  const myNameInput = document.getElementById('myNameInput');
+  const roomCodeInput = document.getElementById('roomCodeInput');
+  const mqttConnStatus = document.getElementById('mqttConnStatus');
+  const friendsContainer = document.getElementById('friendsContainer');
+
+  myNameInput.value = localStorage.getItem('study_username_v6') || 'Aryan';
+  roomCodeInput.value = localStorage.getItem('study_room_v6') || 'NEET-RANKERS-2027';
+
+  let mqttClient = null;
+  let currentTopic = '';
+  const peers = {};
+
+  function broadcastPresence() {
+    const payload = {
+      id: clientId,
+      name: myNameInput.value.trim() || 'Student',
+      status: timerState,
+      timerText: formatTimerMMSS(currentTimerSeconds),
+      subject: studyingNowInput.value.trim() || 'Studying',
+      totalSeconds: todayStudiedSeconds,
+      tasksDone: tasks.filter(t => t.completed).length,
+      tasksTotal: tasks.length,
+      lastSeen: Date.now()
+    };
+    peers[clientId] = payload;
+    renderPeers();
+    if (mqttClient && mqttClient.connected && currentTopic) {
+      mqttClient.publish(currentTopic, JSON.stringify(payload));
+    }
+  }
+
+  function renderPeers() {
+    const now = Date.now();
+    const list = Object.values(peers).filter(p => now - p.lastSeen < 25000).sort((a, b) => b.totalSeconds - a.totalSeconds);
+    friendsContainer.innerHTML = list.map(p => {
+      const isMe = p.id === clientId;
+      const sClass = p.status === 'Studying' ? 'status-studying' : (p.status === 'On Break' ? 'status-break' : 'status-idle');
+      const sIcon = p.status === 'Studying' ? '🟢 Studying' : (p.status === 'On Break' ? '☕ Break' : '⚪ Idle');
+      return `
+        <div class="friend-card" style="${isMe ? 'border-color:var(--primary);' : ''}">
+          <div class="friend-info">
+            <div class="avatar">${p.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <div style="font-weight:700; font-size:0.88rem;">${p.name} ${isMe ? '(You)' : ''}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">📌 ${p.subject} • Tasks: ${p.tasksDone}/${p.tasksTotal}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span class="status-pill ${sClass}">${sIcon} (${p.timerText})</span>
+            <div style="font-size:0.74rem; color:var(--text-muted); margin-top:3px;">Today: <strong>${formatDuration(p.totalSeconds)}</strong></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function connectRoom() {
+    const room = (roomCodeInput.value.trim() || 'NEET-RANKERS-2027').toUpperCase();
+    localStorage.setItem('study_username_v6', myNameInput.value.trim() || 'Aryan');
+    localStorage.setItem('study_room_v6', room);
+    currentTopic = `studysync/v6/room/${room}`;
+    broadcastPresence();
+
+    if (typeof window.mqtt === 'undefined') return;
+    if (!mqttClient) {
+      mqttClient = window.mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+      mqttClient.on('connect', () => {
+        mqttConnStatus.textContent = `🟢 Live (${room})`;
+        mqttClient.subscribe(currentTopic);
+        broadcastPresence();
+      });
+      mqttClient.on('message', (t, msg) => {
+        try {
+          const d = JSON.parse(msg.toString());
+          if (d && d.id) { peers[d.id] = { ...d, lastSeen: Date.now() }; renderPeers(); }
+        } catch (e) {}
+      });
+    } else if (mqttClient.connected) {
+      mqttClient.subscribe(currentTopic);
+      mqttConnStatus.textContent = `🟢 Live (${room})`;
+    }
+  }
+
+  document.getElementById('joinRoomBtn').addEventListener('click', connectRoom);
+  document.getElementById('installAppBtn').addEventListener('click', () => {
+    alert("To install as an App:\n• Android Chrome: Tap 3-dots menu -> 'Add to Home screen'\n• iPhone Safari: Tap Share icon -> 'Add to Home Screen'");
+  });
+
+  // INITIALIZE IMMEDIATELY
+  checkDailyRollover();
+  setMode(currentMode);
+  renderTests();
+  updateTimerUI();
+  broadcastPresence();
+  setTimeout(connectRoom, 1000);
+  setInterval(broadcastPresence, 4000);
+});
+</script>
+
+<script>
+  // Offline app-shell caching. Live room synchronisation still needs internet.
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Offline cache setup failed:', err));
+    });
+  }
+</script>
+
+</body>
+</html>
